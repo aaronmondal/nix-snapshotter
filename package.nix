@@ -48,6 +48,9 @@ let
     # An attribute set describing an image configuration as defined in:
     # https://github.com/opencontainers/image-spec/blob/8b9d41f48198a7d6d0a5c1a12dc2d1f7f47fc97f/specs-go/v1/config.go#L23
     config ? {},
+    # Arbitrary metadata that is tracked in nix and can be used to pass
+    # information to consumers.
+    meta ? {},
   }:
     let
       baseName = baseNameOf name;
@@ -76,6 +79,7 @@ let
           refFlag = lib.optionalString (!resolvedByNix) ''--ref "${imageRef}"'';
 
         in runCommand "nix-image-${baseName}.tar" {
+          inherit meta;
           passthru = {
             inherit name tag;
             # For kubernetes pod spec.
