@@ -31,7 +31,7 @@ let
     # treated as just the package name to help identify the nix store path.
     name,
     # The image tag when exported. By default, this mutable "latest" tag.
-    tag ? "latest",
+    tag ? null,
     # If enabled, the OCI archive will be generated with a special image
     # reference in the format of "nix:0/nix/store/*.tar", which is resolvable
     # by nix-snapshotter if configured as the CRI image-service without a
@@ -74,7 +74,13 @@ let
         let
           imageName = lib.toLower name;
 
-          imageRef = if resolvedByNix then "nix:0${image.outPath}" else "${imageName}:${tag}";
+          imageRef = if resolvedByNix then "nix:0${image.outPath}" else let
+            imageTag =
+              if tag != null
+              then tag
+              else
+              lib.head (lib.strings.splitString "-" (baseNameOf image.outPath));
+          in "${imageName}:${imageTag}";
 
           refFlag = lib.optionalString (!resolvedByNix) ''--ref "${imageRef}"'';
 
